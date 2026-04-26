@@ -781,11 +781,13 @@ def main():
     # Generate and save visualizations for the best model
     print("[INFO] Generating visualizations...")
     best_model_name = max(results, key=lambda k: results[k]['val_metrics'][-1]['f1'])
+    num_classes = int(torch.max(trainer.data.y).item() + 1) if hasattr(trainer.data, 'y') else 2
     best_model = get_model(
         best_model_name,
         in_channels=trainer.data.num_node_features,
         hidden_channels=trainer.config['hidden_channels'],
-        num_layers=trainer.config['num_layers']
+        num_layers=trainer.config['num_layers'],
+        out_channels=num_classes,
     ).to(device)
     
     # Only load state dict if the file exists
