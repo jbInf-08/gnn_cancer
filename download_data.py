@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 import os
 from pathlib import Path
 import logging
@@ -6,8 +11,8 @@ import argparse
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from data_sources.base import DataDownloader, BaseDataSource, DataType, DatasetInfo
-from data_sources.public_repos import (
+from gnn_cancer.data_sources.base import DataDownloader, BaseDataSource, DataType, DatasetInfo
+from gnn_cancer.data_sources.public_repos import (
     CDCDownloader,
     NCBIDownloader,
     UCIDownloader,
@@ -16,14 +21,14 @@ from data_sources.public_repos import (
     NIHDownloader,
     KaggleDownloader
 )
-from data_sources.imaging_challenges import (
+from gnn_cancer.data_sources.imaging_challenges import (
     LIDCIDRIDownloader,
     NSCLCDownloader,
     Luna16Downloader,
     BraTSDownloader,
     REMBRANDTDownloader
 )
-from data_sources.clinical_repos import (
+from gnn_cancer.data_sources.clinical_repos import (
     MIMICDownloader,
     eICUDownloader,
     HiRIDDownloader,
@@ -32,7 +37,7 @@ from data_sources.clinical_repos import (
     NCDBDownloader,
     MIMICIIDownloader
 )
-from data_sources.genomics_repos import (
+from gnn_cancer.data_sources.genomics_repos import (
     TCGADownloader,
     ICGCDownloader,
     EGADownloader,

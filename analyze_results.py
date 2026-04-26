@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 import json
 import numpy as np
 import pandas as pd
@@ -11,7 +16,7 @@ from torch_geometric.data import Data
 from torch_geometric.nn import GCNConv
 from sklearn.metrics import confusion_matrix, classification_report
 import logging
-from models.models import GATModel
+from gnn_cancer.models.models import GATModel
 
 # Add safe globals for PyTorch Geometric
 add_safe_globals([Data])

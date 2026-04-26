@@ -29,7 +29,7 @@ class RealClinicalPipelineOrchestrator:
         self.scripts = {
             'data_integration': 'real_clinical_data_integrator.py',
             'data_processing': 'real_data_processor.py',
-            'model_training': 'real_clinical_training.py'
+            'model_training': 'legacy/real_clinical_training.py'
         }
         
         self.results_dir = Path("results/real_clinical_pipeline")

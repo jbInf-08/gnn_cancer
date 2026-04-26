@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 # analyze_attention.py
 import torch
 import numpy as np
@@ -5,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
 import json
-from models.models import GCNModel, GraphSAGEModel, GATModel
+from gnn_cancer.models.models import GCNModel, GraphSAGEModel, GATModel
 import seaborn as sns
 
 def load_gat_model_and_data():

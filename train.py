@@ -1,4 +1,10 @@
 # train.py
+# Repo-root execution: add project root to path so `import gnn_cancer` works without pip install.
+import sys
+from pathlib import Path as _Path
+_sys_root = _Path(__file__).resolve().parent
+if str(_sys_root) not in sys.path:
+    sys.path.insert(0, str(_sys_root))
 import os
 import time
 import numpy as np
@@ -48,13 +54,13 @@ import shap
 import lime
 import lime.lime_tabular
 
-from models.models import GCNModel, GraphSAGEModel, GATModel
-from models.gnn_models import get_model
+from gnn_cancer.models.models import GCNModel, GraphSAGEModel, GATModel
+from gnn_cancer.models.gnn_models import get_model
 import pretrain
-from utils.data_utils import load_data
-from utils.visualization import plot_learning_curves, plot_roc_curves, plot_pr_curves, plot_confusion_matrix
-from utils.cancer_types import get_cancer_type, get_all_cancer_types, DataSource
-from utils.train_model import train_model, calculate_metrics
+from gnn_cancer.utils.data_utils import load_data
+from gnn_cancer.utils.visualization import plot_learning_curves, plot_roc_curves, plot_pr_curves, plot_confusion_matrix
+from gnn_cancer.utils.cancer_types import get_cancer_type, get_all_cancer_types, DataSource
+from gnn_cancer.utils.train_model import train_model, calculate_metrics
 
 # Set up logging for script progress
 logging.basicConfig(level=logging.INFO)

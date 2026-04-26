@@ -1,11 +1,16 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 # ablation_studies.py
 import torch
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from copy import deepcopy
-from models.models import GCNModel, GraphSAGEModel, GATModel
-from utils.train_model import train_model
+from gnn_cancer.models.models import GCNModel, GraphSAGEModel, GATModel
+from gnn_cancer.utils.train_model import train_model
 
 def run_ablation_study(full_data, model_class, ablation_configs):
     """Run ablation studies by removing different components of the model/data."""
@@ -40,7 +45,7 @@ def run_ablation_study(full_data, model_class, ablation_configs):
         # Create new model instance
         if name == 'Attention Mechanism':
             # For attention mechanism ablation, use GCN instead of GAT
-            from models import GCNModel
+            from gnn_cancer.models.models import GCNModel
             ablation_model = GCNModel(input_dim=modified_data.num_node_features, hidden_dim=64, dropout=0.5)
         else:
             ablation_model = model_class(input_dim=modified_data.num_node_features, hidden_dim=64, dropout=0.5, heads=8)

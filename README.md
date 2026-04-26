@@ -1,81 +1,82 @@
-# Gnn Cancer
+# gnn_cancer
 
-Graph Neural Network-based cancer analysis and prediction system
+Graph neural networks (PyTorch Geometric) for cancer data workflows: GCN, GraphSAGE, and GAT on graph data derived from public resources (e.g. TCGA/GDC orientation), with WandB logging and optional pretraining.
 
-## Overview
+**This repository is the implementation.** Training code lives under the `gnn_cancer/` package; runnable drivers remain at the repository root. Large data, checkpoints, and API keys are **not** included (see `.gitignore`).
 
-This project implements a Graph Neural Network (GNN) based system for cancer analysis and prediction. The system leverages graph-based machine learning techniques to analyze complex biological networks and genomic data for cancer research applications.
-
-## Features
-
-- **Graph Neural Network Architecture**: Advanced GNN models for biological network analysis
-- **Cancer Data Processing**: Specialized data preprocessing for cancer genomics datasets
-- **Network Analysis**: Tools for analyzing protein-protein interaction networks
-- **Prediction Models**: Machine learning models for cancer classification and prediction
-- **Visualization**: Interactive visualizations of network structures and predictions
-
-## Technology Stack
-
-- **Deep Learning**: PyTorch Geometric, DGL (Deep Graph Library)
-- **Data Processing**: Pandas, NumPy, NetworkX
-- **Visualization**: Matplotlib, Plotly, NetworkX
-- **Machine Learning**: Scikit-learn, XGBoost
-- **Bioinformatics**: Biopython, BioPandas
-
-## Project Structure
-
-```
-gnn_cancer/
-├── models/          # GNN model implementations
-├── data/           # Data processing and loading
-├── utils/          # Utility functions
-├── visualization/  # Plotting and visualization tools
-├── experiments/    # Training and evaluation scripts
-└── docs/          # Documentation and examples
-```
-
-## Installation
+## Install
 
 ```bash
-git clone https://github.com/jbInf-08/gnn_cancer.git
-cd gnn_cancer
-pip install -r requirements.txt
+pip install -e ".[dev]"          # from repo root, editable install
+# or:
+pip install -e ".[dev,notebooks]"
 ```
+
+**PyTorch Geometric** may require matching `torch-scatter` / `torch-sparse` wheels for your OS/CUDA. See the [PyG install guide](https://pyg.org/install.html) if `pip install -e .` does not complete.
+
+### GDC client (data transfer, optional)
+
+The GDC **binary** is not stored in the repository. On Linux or macOS, use:
+
+```bash
+bash scripts/download_gdc_client.sh
+```
+
+Or: `conda install -c bioconda gdc-client`. The script downloads the official Ubuntu distribution, verifies the published MD5, and explains fallbacks if the NCI link changes.
+
+### UUID ↔ TCGA barcode mapping
+
+`uuid_to_barcode.csv` is **not** committed. To regenerate a mapping from the GDC API:
+
+```bash
+python scripts/download_uuid_to_barcode.py --project TCGA-BRCA
+```
+
+(Outputs under `data/metadata/` by default; path is gitignored when appropriate.)
 
 ## Usage
 
-```python
-# Example usage for GNN cancer analysis
-from models.gnn_model import CancerGNN
-from data.loader import CancerDataLoader
+**Training** (requires `WANDB_API_KEY` or `config/api_keys.json` for Weights & Biases):
 
-# Load cancer dataset
-data_loader = CancerDataLoader()
-dataset = data_loader.load_cancer_data()
-
-# Initialize and train GNN model
-model = CancerGNN()
-model.train(dataset)
+```bash
+python train.py --cancer_type BRCA --model GCN --data_source TCGA
 ```
 
-## Research Applications
+`train.py` trains GCN, GraphSAGE, and GAT in one run; `--model` is used for WandB naming. For the BRCA+TCGA path, build or obtain `data/processed/BRCA_comprehensive_data.pt` first (see `scripts/`).
 
-- **Cancer Classification**: Multi-class cancer type prediction
-- **Drug Response Prediction**: Predicting patient response to treatments
-- **Biomarker Discovery**: Identifying novel cancer biomarkers
-- **Network Analysis**: Understanding cancer-related biological networks
+**End-to-end driver:**
 
-## Contributing
+```bash
+python run_pipeline.py
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+**Programmatic import:**
+
+```python
+from gnn_cancer.models.gnn_models import get_model
+
+model = get_model("GraphSAGE", in_channels=256, out_channels=2, hidden_channels=128, num_layers=3)
+```
+
+## Layout
+
+- `gnn_cancer/` — installable package (`models/`, `utils/`, `data_sources/`, …)
+- `train.py` — primary training entry
+- `scripts/` — GDC/data helpers (including `download_gdc_client.sh`, `download_uuid_to_barcode.py`)
+- `legacy/` — old experimental training scripts (see `legacy/README.md`)
+- `docs/UPDATED_PAPER.md` — research draft (not automatically aligned with the running code)
+- `notebooks/results_summary.ipynb` — minimal template to summarize **your** result artifacts
+
+Regenerated images and checkpoints should stay under `results/` and are ignored from git; see `.gitignore`.
+
+## Tests and CI
+
+```bash
+pytest
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main`/`master`.
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Note
-
-This repository contains only documentation and example code. The actual implementation and sensitive data are not included for privacy and security reasons.
+MIT — see [LICENSE](LICENSE).

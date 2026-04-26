@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 # evaluate_models.py
 import torch
 import numpy as np
@@ -8,7 +13,7 @@ from sklearn.metrics import roc_curve, precision_recall_curve, confusion_matrix
 from sklearn.metrics import auc, roc_auc_score
 import json
 
-from models.models import GCNModel, GraphSAGEModel, GATModel
+from gnn_cancer.models.models import GCNModel, GraphSAGEModel, GATModel
 
 def load_best_models():
     """Load the best trained models for evaluation."""
@@ -19,7 +24,7 @@ def load_best_models():
     input_dim = data.num_node_features
     
     # Import models
-    from models import GCNModel, GraphSAGEModel, GATModel
+    from gnn_cancer.models.models import GCNModel, GraphSAGEModel, GATModel
     
     # Initialize models with same architecture as during training
     models['GCN'] = GCNModel(input_dim=input_dim, hidden_dim=64, dropout=0.5)

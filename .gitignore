@@ -138,14 +138,35 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Sensitive data (for these specific projects)
+# Sensitive data and large artifacts
 *.json
 credentials/
 secrets/
 config/
 data/
-models/
+
+# Trained model weights (keep source in gnn_cancer/models/)
+gnn_cancer/models/*.pt
+gnn_cancer/models/checkpoints/
 *.pkl
 *.h5
 *.pth
-*.pt
+# Only ignore .pt in data/results outputs, not every file named .pt
+data/**/*.pt
+results/**/*.pt
+# Stray weight dumps at repo root
+/*.pt
+# GDC client binaries (use scripts/download_gdc_client.sh)
+gdc-client
+gdc-client.exe
+**/gdc-client
+
+# TCGA / GDC id mappings (regenerate; see scripts/download_uuid_to_barcode.py)
+uuid_to_barcode.csv
+uuid_to_barcode_*.csv
+data/metadata/
+
+# Regenerable result artifacts
+results/**/*.png
+results/**/*.pdf
+!results/.gitkeep

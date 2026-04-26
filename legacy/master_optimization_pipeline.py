@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 """
 Master Optimization Pipeline to Fully Surpass the Paper
 - Orchestrates all improvements and optimizations
@@ -107,7 +112,7 @@ class MasterOptimizationPipeline:
         
         try:
             from optimized_gat_implementation import OptimizedGATModel, AdvancedTrainingConfig
-            from models.enhanced_gnn_models import EnhancedGATModel, EnhancedGraphSAGEModel, EnhancedGCNModel
+            from gnn_cancer.models.enhanced_gnn_models import EnhancedGATModel, EnhancedGraphSAGEModel, EnhancedGCNModel
             
             # Load improved data
             data_file = Path('data/enhanced/improved_torch_geometric_data.pt')
@@ -506,3 +511,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

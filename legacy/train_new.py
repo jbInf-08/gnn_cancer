@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 import os
 import torch
 import torch.nn.functional as F
@@ -13,10 +18,10 @@ from sklearn.preprocessing import label_binarize
 import argparse
 from typing import Dict, List, Optional, Union
 
-from models.models import GCNModel, GraphSAGEModel, GATModel
-from utils.data_utils import load_data
-from utils.visualization import plot_learning_curves, plot_roc_curves, plot_pr_curves, plot_confusion_matrix
-from utils.cancer_types import get_cancer_type, get_all_cancer_types, DataSource
+from gnn_cancer.models.models import GCNModel, GraphSAGEModel, GATModel
+from gnn_cancer.utils.data_utils import load_data
+from gnn_cancer.utils.visualization import plot_learning_curves, plot_roc_curves, plot_pr_curves, plot_confusion_matrix
+from gnn_cancer.utils.cancer_types import get_cancer_type, get_all_cancer_types, DataSource
 import pretrain
 
 def parse_args():
