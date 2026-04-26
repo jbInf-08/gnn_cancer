@@ -78,6 +78,10 @@ pytest
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main`/`master`.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) (environment, PyG install, WandB, tests).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
