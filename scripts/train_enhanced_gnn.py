@@ -18,8 +18,11 @@ import time
 
 # Import our models
 import sys
-sys.path.append('models')
-from enhanced_gnn_models import get_enhanced_model
+from pathlib import Path
+_root = Path(__file__).resolve().parents[1]
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
+from gnn_cancer.models.enhanced_gnn_models import get_enhanced_model
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

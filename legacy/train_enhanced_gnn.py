@@ -1,4 +1,10 @@
-﻿import os
+import sys
+from pathlib import Path as _Path
+# Repo root (parent of `legacy/`) for `import gnn_cancer`
+_root = _Path(__file__).resolve().parents[1]
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
+import os
 import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv, HeteroConv, Linear
@@ -11,14 +17,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
-import sys
-sys.path.append('models')
-from gnn_models import EnhancedHeteroGNN, MultiModalGNN, AttentionHeteroGNN
-from models.enhanced_gnn_models import EnhancedGATModel
+from gnn_cancer.models.enhanced_gnn_models import EnhancedGATModel
 import itertools
 from sklearn.model_selection import StratifiedKFold
 from scripts.integrate_real_data import RealDataIntegrator
-from models.enhanced_gnn_models import get_enhanced_model
+from gnn_cancer.models.enhanced_gnn_models import get_enhanced_model
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -418,3 +421,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

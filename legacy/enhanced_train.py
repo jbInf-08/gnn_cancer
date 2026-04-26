@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 """
 Enhanced Training Pipeline implementing reference paper's approach
 - Proper train/validation/test splits (70/15/15)
@@ -29,7 +34,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Import enhanced models
-from models.enhanced_gnn_models import get_enhanced_model
+from gnn_cancer.models.enhanced_gnn_models import get_enhanced_model
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

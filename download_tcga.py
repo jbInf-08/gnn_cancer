@@ -1,6 +1,11 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 import argparse
 from pathlib import Path
-from data_sources.clinical_repos import TCGADownloader
+from gnn_cancer.data_sources.clinical_repos import TCGADownloader
 
 def main():
     parser = argparse.ArgumentParser(description="Download TCGA data")

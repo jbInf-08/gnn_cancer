@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gnn-cancer"
+version = "0.2.0"
+description = "Graph neural networks for cancer classification and genomics workflows (PyTorch Geometric)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [{ name = "gnn_cancer contributors" }]
+dependencies = [
+    "torch>=2.0",
+    "torch-geometric>=2.3",
+    "torch-scatter",
+    "torch-sparse",
+    "pandas>=1.5",
+    "numpy>=1.24",
+    "scikit-learn>=1.2",
+    "networkx>=3.0",
+    "matplotlib>=3.7",
+    "seaborn>=0.12",
+    "tqdm>=4.65",
+    "requests>=2.31",
+    "transformers>=4.30",
+    "wandb>=0.15",
+    "imbalanced-learn>=0.11",
+    "umap-learn>=0.5",
+    "shap>=0.42",
+    "lime>=0.2",
+    "xgboost>=1.7",
+    "biopython>=1.81",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.1",
+]
+notebooks = [
+    "jupyter>=1.0",
+    "ipykernel>=6.25",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gnn_cancer*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-q"

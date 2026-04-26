@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 import torch
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -7,7 +12,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from typing import Dict, List, Optional, Tuple
 import logging
-from models.gnn_models import get_model
+from gnn_cancer.models.gnn_models import get_model
 import pandas as pd
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
