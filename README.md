@@ -73,6 +73,7 @@ model = get_model("GraphSAGE", in_channels=256, out_channels=2, hidden_channels=
 
 - `gnn_cancer/` — installable package (`models/`, `utils/`, `data_sources/`, …)
 - `train.py` — primary training entry
+- `experiments/` — exploratory standalone scripts moved out of root for maintainability
 - `scripts/` — GDC/data helpers (including `download_gdc_client.sh`, `download_uuid_to_barcode.py`)
 - `legacy/` — old experimental training scripts (see `legacy/README.md`)
 - `docs/UPDATED_PAPER.md` — research draft (not automatically aligned with the running code)
@@ -92,6 +93,10 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main`/`master`.
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) (environment, PyG install, WandB, tests).
+
+## Release discipline
+
+Use annotated tags and update `CHANGELOG.md` for each release cut so consumers can track model/training behavior changes.
 
 ## License
 
