@@ -65,6 +65,7 @@ model = get_model("GraphSAGE", in_channels=256, out_channels=2, hidden_channels=
 - `scripts/` — GDC/data helpers (including `download_gdc_client.sh`, `download_uuid_to_barcode.py`)
 - `legacy/` — old experimental training scripts (see `legacy/README.md`)
 - `docs/UPDATED_PAPER.md` — research draft (not automatically aligned with the running code)
+- `docs/PROJECTS_*.md` — **optional** private notes; these patterns are gitignored so you can keep them only on your machine
 - `notebooks/results_summary.ipynb` — minimal template to summarize **your** result artifacts
 
 Regenerated images and checkpoints should stay under `results/` and are ignored from git; see `.gitignore`.

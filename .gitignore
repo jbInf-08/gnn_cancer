@@ -170,3 +170,6 @@ data/metadata/
 results/**/*.png
 results/**/*.pdf
 !results/.gitkeep
+
+# Optional local notes (e.g. interview prep); not part of the published project
+docs/PROJECTS_*.md
