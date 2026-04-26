@@ -27,6 +27,29 @@ jobs:
             wandb imbalanced-learn umap-learn shap lime xgboost biopython
       - name: Byte-compile
         run: python -m compileall -q gnn_cancer
+      - name: Guard top-level script sprawl
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          allowed = {
+              "train.py",
+              "run_pipeline.py",
+              "preprocess_data.py",
+              "pretrain.py",
+              "visualize.py",
+              "visualize_graph.py",
+              "visualize_processing.py",
+              "summarize_results.py",
+              "setup_credentials.py",
+          }
+          offenders = sorted(
+              p.name for p in Path(".").glob("*.py")
+              if p.name not in allowed and p.name != "__init__.py"
+          )
+          if offenders:
+              raise SystemExit(f"Unexpected top-level scripts: {', '.join(offenders)}")
+          print("Top-level script guard passed.")
+          PY
       - name: Pytest
         run: python -m pytest
         env:

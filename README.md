@@ -1,8 +1,19 @@
 # gnn_cancer
 
+[![CI](https://github.com/jbInf-08/gnn_cancer/actions/workflows/ci.yml/badge.svg)](https://github.com/jbInf-08/gnn_cancer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Graph neural networks (PyTorch Geometric) for cancer data workflows: GCN, GraphSAGE, and GAT on graph data derived from public resources (e.g. TCGA/GDC orientation), with WandB logging and optional pretraining.
 
 **This repository is the implementation.** Training code lives under the `gnn_cancer/` package; runnable drivers remain at the repository root. Large data, checkpoints, and API keys are **not** included (see `.gitignore`).
+
+## Golden path
+
+```bash
+pip install -e ".[dev]"
+make train-smoke
+python train.py --cancer_type BRCA --model GCN --data_source TCGA
+```
 
 ## Install
 
