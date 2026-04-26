@@ -22,7 +22,9 @@ jobs:
           pip install torch-geometric pytest
           T=$(python -c "import torch; print(torch.__version__.split('+')[0])")
           pip install "torch-scatter" "torch-sparse" -f "https://data.pyg.org/whl/torch-${T}+cpu.html" || true
-          pip install -r requirements-lock.txt
+          pip install -e ".[dev]" --no-deps
+          pip install numpy pandas scikit-learn networkx matplotlib seaborn tqdm requests transformers \
+            wandb imbalanced-learn umap-learn shap lime xgboost biopython
       - name: Byte-compile
         run: python -m compileall -q gnn_cancer
       - name: Guard top-level script sprawl
