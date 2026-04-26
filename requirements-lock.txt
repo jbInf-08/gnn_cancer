@@ -1,0 +1,21 @@
+# Baseline lock-style pins for reproducible local setups.
+# Refresh with your preferred resolver (pip-tools/uv/poetry) when updating.
+torch==2.0.0
+torch-geometric==2.3.0
+pandas==1.5.0
+numpy==1.24.0
+scikit-learn==1.2.0
+networkx==3.0
+matplotlib==3.7.0
+seaborn==0.12.0
+tqdm==4.65.0
+requests==2.31.0
+transformers==4.30.0
+wandb==0.15.0
+imbalanced-learn==0.11.0
+umap-learn==0.5.0
+shap==0.42.0
+lime==0.2.0
+xgboost==1.7.0
+biopython==1.81
+pytest==7.4.0
