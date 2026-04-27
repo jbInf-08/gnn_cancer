@@ -1,7 +1,9 @@
 """
-Strategy to Handle Severe Class Imbalance in Cancer Genomics Data
-- Only 19 positive samples out of 967,189 total samples (0.002% positive rate)
-- Advanced techniques to handle extreme imbalance
+Strategies for class imbalance in graph / tabular oncology workflows.
+
+Do not assume fixed cohort sizes (e.g. 967k nodes / 19 positives); those were legacy
+documentation literals, not measured values from this file. Measure class counts from
+your loaded tensor or manifest before choosing weights, focal loss, or resampling.
 """
 
 import torch

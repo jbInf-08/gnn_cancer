@@ -219,10 +219,12 @@ def create_learning_curves_figure():
     plt.show()
 
 def create_dataset_scale_figure():
-    """Figure 5: Dataset Scale - Massive Cancer Genomics Dataset"""
-    
-    categories = ['Patient Samples', 'Graph Nodes', 'Biological\nRelationships', 'Class Imbalance\nRatio']
-    values = [967189, 967189, 2134841, 50903]  # Real large dataset values
+    """Figure 5: Dataset scale (defaults: UCI Wisconsin benchmark — not TCGA cohort size)."""
+    # Honest defaults: sklearn Wisconsin BC + kNN graph (see gnn_cancer/benchmark_datasets.py).
+    categories = ['Samples', 'Graph\nNodes', 'Directed\nEdges', 'Benign:Malignant\n(~ratio×100)']
+    benign, mal = 357, 212
+    ratio_x100 = int(round((benign / mal) * 100)) if mal else 0
+    values = [569, 569, 8554, ratio_x100]
     
     # Increase figure size for better spacing
     fig, ax = plt.subplots(figsize=(14, 10))
@@ -243,7 +245,7 @@ def create_dataset_scale_figure():
         ax.text(bar.get_x() + bar.get_width()/2., height + height*0.02,
                label, ha='center', va='bottom', fontweight='bold', fontsize=12)
     
-    ax.set_title('Massive Cancer Genomics Dataset Scale', fontsize=16, fontweight='bold', pad=20)
+    ax.set_title('UCI Wisconsin (Diagnostic) kNN Graph — Illustrative Scale', fontsize=16, fontweight='bold', pad=20)
     ax.set_ylabel('Count', fontsize=14, fontweight='bold')
     ax.set_xlabel('Dataset Components', fontsize=14, fontweight='bold')
     ax.grid(True, alpha=0.3, axis='y')
@@ -337,11 +339,9 @@ def create_architecture_diagram_figure():
     plt.show()
 
 def create_class_imbalance_figure():
-    """Figure 7: Class Imbalance - Real Data Distribution"""
-    
-    # Real large dataset class distribution
-    labels = ['Negative Samples\n(No Driver Mutations)', 'Positive Samples\n(Driver Mutations)']
-    sizes = [967170, 19]  # Real large dataset: 967,170 negative, 19 positive
+    """Figure 7: Class distribution (defaults: UCI Wisconsin — mild imbalance)."""
+    labels = ['Benign (class 1)', 'Malignant (class 0)']
+    sizes = [357, 212]
     colors = ['#ff9999', '#66b3ff']
     
     # Increase figure size for better spacing
@@ -351,11 +351,17 @@ def create_class_imbalance_figure():
                                      startangle=90, explode=(0.05, 0.1))
     
     # Add ratio text with better positioning
-    plt.figtext(0.5, 0.05, f'Class Imbalance Ratio: 50,903:1 (967,170:19)', 
-                ha='center', fontsize=12, fontweight='bold', 
-                bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgray", alpha=0.9))
-    
-    ax.set_title('Extreme Class Imbalance in Cancer Genomics Dataset', fontsize=16, fontweight='bold', pad=20)
+    plt.figtext(
+        0.5,
+        0.05,
+        "Class ratio (benign:malignant) ~1.68:1 — not a 50,903:1 TCGA-style imbalance",
+        ha="center",
+        fontsize=12,
+        fontweight="bold",
+        bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgray", alpha=0.9),
+    )
+
+    ax.set_title('Class Distribution (UCI Wisconsin Diagnostic)', fontsize=16, fontweight='bold', pad=20)
     
     # Adjust layout to prevent cutoff
     plt.tight_layout()
@@ -386,8 +392,8 @@ def create_performance_summary_figure():
                 f'{acc}%', ha='center', va='bottom', fontweight='bold', fontsize=10)
     
     # Top right: Dataset Scale
-    components = ['Patient\nSamples', 'Biological\nRelationships', 'Features']
-    values = [967189, 2134841, 19]
+    components = ['Patient\nSamples', 'Graph\nedges', 'Features']
+    values = [569, 8554, 30]
     
     bars = ax2.bar(components, values, color=['#ffcc99', '#cc99ff', '#99ccff'], alpha=0.8)
     ax2.set_title('Dataset Scale', fontsize=12, fontweight='bold', pad=10)
@@ -406,8 +412,8 @@ def create_performance_summary_figure():
                 label, ha='center', va='bottom', fontweight='bold', fontsize=10)
     
     # Bottom left: Class Imbalance
-    classes = ['Negative', 'Positive']
-    counts = [967170, 19]
+    classes = ['Benign', 'Malignant']
+    counts = [357, 212]
     
     wedges, texts, autotexts = ax3.pie(counts, labels=classes, autopct='%1.1f%%', 
                                       colors=['#ff9999', '#66b3ff'], startangle=90)

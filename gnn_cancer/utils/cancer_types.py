@@ -14,6 +14,8 @@ class DataSource(Enum):
     CCLE = "CCLE"
     GDSC = "GDSC"
     NCI60 = "NCI60"
+    # sklearn UCI Wisconsion breast-cancer (public benchmark); kNN graph in train.py
+    BENCHMARK = "BENCHMARK"
 
 @dataclass
 class CancerType:
@@ -30,7 +32,7 @@ TCGA_CANCER_TYPES = {
         code="BRCA",
         name="Breast Invasive Carcinoma",
         description="Breast cancer that has spread into surrounding breast tissue",
-        data_sources=[DataSource.TCGA, DataSource.ICGC, DataSource.COSMIC],
+        data_sources=[DataSource.TCGA, DataSource.BENCHMARK, DataSource.ICGC, DataSource.COSMIC],
         aliases=["Breast Cancer", "Breast Carcinoma"]
     ),
     "LUAD": CancerType(

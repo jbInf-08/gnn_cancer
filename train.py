@@ -66,21 +66,40 @@ from gnn_cancer.utils.train_model import train_model, calculate_metrics
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("train_script")
 
-# API Key handling
-API_KEY = os.getenv('WANDB_API_KEY')
-if not API_KEY:
-    # Try to load from config/api_keys.json
-    import json
+def _get_wandb_api_key() -> Optional[str]:
+    """Read WandB key from the environment or config/api_keys.json (optional)."""
+    k = os.getenv("WANDB_API_KEY")
+    if k:
+        return k
     try:
-        with open('config/api_keys.json', 'r') as f:
-            api_keys = json.load(f)
-            API_KEY = api_keys.get('WANDB_API_KEY')
-            if API_KEY:
-                os.environ['WANDB_API_KEY'] = API_KEY
-    except Exception as e:
-        API_KEY = None
-if not API_KEY:
-    raise ValueError("Please set the WANDB_API_KEY environment variable or add it to config/api_keys.json")
+        with open("config/api_keys.json", "r", encoding="utf-8") as f:
+            keys = json.load(f)
+        return keys.get("WANDB_API_KEY")
+    except Exception:
+        return None
+
+
+def _make_wandb_stub():
+    class _Image:
+        def __init__(self, path: str) -> None:
+            self.path = path
+
+    class _W:
+        Image = _Image
+
+        @staticmethod
+        def init(*_a, **_k):
+            return None
+
+        @staticmethod
+        def log(*_a, **_k):
+            return None
+
+        @staticmethod
+        def finish():
+            return None
+
+    return _W()
 
 def set_seed(seed: int):
     """Set random seed for reproducibility."""
@@ -204,6 +223,23 @@ class ModelTrainer:
 
     def load_data(self, cancer_type: str, data_source: str = 'TCGA'):
         """Load data for the specified cancer type and data source."""
+        if cancer_type.upper() == 'BRCA' and data_source.upper() == 'BENCHMARK':
+            from gnn_cancer.benchmark_datasets import load_uci_breast_cancer_graph
+
+            self.data = load_uci_breast_cancer_graph(
+                k_neighbors=10,
+                seed=int(self.args.seed) if self.args and hasattr(self.args, "seed") else 42,
+            )
+            n = int(self.data.train_mask.sum()) + int(self.data.val_mask.sum()) + int(
+                self.data.test_mask.sum()
+            )
+            print(
+                f"[INFO] Loaded BENCHMARK (sklearn Wisconsin BC) graph: "
+                f"{self.data.num_nodes} nodes, {self.data.num_edges} edges, "
+                f"{self.data.num_node_features} features, train/val/test = "
+                f"{int(self.data.train_mask.sum())}/{int(self.data.val_mask.sum())}/{int(self.data.test_mask.sum())}"
+            )
+            return
         # For BRCA/TCGA, load the comprehensive multi-omics graph
         if cancer_type.upper() == 'BRCA' and data_source.upper() == 'TCGA':
             data_path = self.data_dir / 'processed' / 'BRCA_comprehensive_data.pt'
@@ -258,7 +294,8 @@ class ModelTrainer:
             out = model(data.x, data.edge_index, data.edge_attr if hasattr(data, 'edge_attr') else None)
             
             # Debug: Print intermediate values
-            if epoch == 0:
+            _q = getattr(self, "quiet", False)
+            if not _q and epoch == 0:
                 print(f"[DEBUG] Input x shape: {data.x.shape}")
                 print(f"[DEBUG] Input x stats: min={data.x.min():.4f}, max={data.x.max():.4f}, mean={data.x.mean():.4f}")
                 print(f"[DEBUG] Input x has NaN: {torch.isnan(data.x).any()}")
@@ -272,11 +309,12 @@ class ModelTrainer:
                 print(f"[DEBUG] Output has NaN: {torch.isnan(out).any()}")
             
             # Print first 5 logits and check for NaNs/Infs
-            first_5_logits = out[data.train_mask][:5].detach().cpu().numpy()
-            has_nan = torch.isnan(out).any().item()
-            has_inf = torch.isinf(out).any().item()
-            print(f"Epoch {epoch}: first 5 logits (train): {first_5_logits}")
-            print(f"  Any NaN in logits: {has_nan} | Any Inf in logits: {has_inf}")
+            if not _q or epoch == 0:
+                first_5_logits = out[data.train_mask][:5].detach().cpu().numpy()
+                has_nan = torch.isnan(out).any().item()
+                has_inf = torch.isinf(out).any().item()
+                print(f"Epoch {epoch}: first 5 logits (train): {first_5_logits}")
+                print(f"  Any NaN in logits: {has_nan} | Any Inf in logits: {has_inf}")
             
             loss = F.cross_entropy(out[data.train_mask], data.y[data.train_mask])
             loss.backward()
@@ -288,7 +326,8 @@ class ModelTrainer:
                 val_out = model(data.x, data.edge_index, data.edge_attr if hasattr(data, 'edge_attr') else None)
                 val_loss = F.cross_entropy(val_out[data.val_mask], data.y[data.val_mask])
             
-            print(f"Epoch {epoch}: train_loss={loss.item():.4f}, val_loss={val_loss.item():.4f}")
+            if not _q or epoch % 10 == 0 or epoch == 0:
+                print(f"Epoch {epoch}: train_loss={loss.item():.4f}, val_loss={val_loss.item():.4f}")
             
             # Early stopping
             if val_loss < best_val_loss:
@@ -302,15 +341,16 @@ class ModelTrainer:
                     print(f"Early stopping at epoch {epoch}")
                     break
 
-            wandb.log({
-                'epoch': epoch,
-                'train_loss': loss.item(),
-                'val_loss': val_loss.item(),
-                'val_accuracy': self.calculate_metrics(val_out[data.val_mask].argmax(dim=1).cpu().numpy(), data.y[data.val_mask].cpu().numpy())['accuracy'],
-                'val_f1': self.calculate_metrics(val_out[data.val_mask].argmax(dim=1).cpu().numpy(), data.y[data.val_mask].cpu().numpy())['f1'],
-                'val_precision': self.calculate_metrics(val_out[data.val_mask].argmax(dim=1).cpu().numpy(), data.y[data.val_mask].cpu().numpy())['precision'],
-                'val_recall': self.calculate_metrics(val_out[data.val_mask].argmax(dim=1).cpu().numpy(), data.y[data.val_mask].cpu().numpy())['recall']
-            })
+            if not getattr(self, "wandb_off", False):
+                wandb.log({
+                    'epoch': epoch,
+                    'train_loss': loss.item(),
+                    'val_loss': val_loss.item(),
+                    'val_accuracy': self.calculate_metrics(val_out[data.val_mask].argmax(dim=1).cpu().numpy(), data.y[data.val_mask].cpu().numpy())['accuracy'],
+                    'val_f1': self.calculate_metrics(val_out[data.val_mask].argmax(dim=1).cpu().numpy(), data.y[data.val_mask].cpu().numpy())['f1'],
+                    'val_precision': self.calculate_metrics(val_out[data.val_mask].argmax(dim=1).cpu().numpy(), data.y[data.val_mask].cpu().numpy())['precision'],
+                    'val_recall': self.calculate_metrics(val_out[data.val_mask].argmax(dim=1).cpu().numpy(), data.y[data.val_mask].cpu().numpy())['recall']
+                })
 
         # Final test evaluation
         print(f"[INFO] Evaluating {model_type} on test set...")
@@ -661,36 +701,49 @@ class ModelTrainer:
             plt.close()
 
 def main():
+    global wandb
     args = parse_args()
     set_seed(args.seed)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("[INFO] Starting main() with args:", args)
     
-    # Initialize wandb
-    print("[INFO] Initializing wandb...")
-    wandb.init(
-        project="gnn-cancer-mutation",
-        name=f"{args.cancer_type}_{args.model}",
-        config={
-            "cancer_type": args.cancer_type,
-            "model": args.model,
-            "hidden_channels": args.hidden_channels,
-            "num_layers": args.num_layers,
-            "dropout": args.dropout,
-            "learning_rate": args.lr,
-            "weight_decay": args.weight_decay,
-            "epochs": args.epochs,
-            "batch_size": args.batch_size,
-            "patience": args.patience,
-            "pretrain": args.pretrain,
-            "augment": args.augment,
-            "data_source": args.data_source
-        }
-    )
-    print("[INFO] Wandb initialized.")
+    if args.no_wandb:
+        wandb = _make_wandb_stub()
+        print("[INFO] WandB disabled (--no-wandb).")
+    else:
+        key = _get_wandb_api_key()
+        if not key:
+            raise ValueError(
+                "Weights & Biases is enabled but no API key was found. Set WANDB_API_KEY, "
+                "add it to config/api_keys.json, or pass --no-wandb for offline / local runs."
+            )
+        os.environ["WANDB_API_KEY"] = key
+        print("[INFO] Initializing wandb...")
+        wandb.init(
+            project="gnn-cancer-mutation",
+            name=f"{args.cancer_type}_{args.model}",
+            config={
+                "cancer_type": args.cancer_type,
+                "model": args.model,
+                "hidden_channels": args.hidden_channels,
+                "num_layers": args.num_layers,
+                "dropout": args.dropout,
+                "learning_rate": args.lr,
+                "weight_decay": args.weight_decay,
+                "epochs": args.epochs,
+                "batch_size": args.batch_size,
+                "patience": args.patience,
+                "pretrain": args.pretrain,
+                "augment": args.augment,
+                "data_source": args.data_source
+            }
+        )
+        print("[INFO] Wandb initialized.")
     
     trainer = ModelTrainer(data_dir=Path(args.data_dir), device=device)
     trainer.args = args
+    trainer.quiet = bool(args.quiet)
+    trainer.wandb_off = bool(args.no_wandb)
     trainer.config.update({
         'hidden_channels': args.hidden_channels,
         'num_layers': args.num_layers,
@@ -726,11 +779,10 @@ def main():
                 data_variant = func(data_variant)
             trainer.data = data_variant
             results, _ = trainer.train_all_models()
-            best_model_name = max(results, key=lambda k: results[k]['val_metrics'][-1]['f1'])
-            best_f1_score = results[best_model_name]['val_metrics'][-1]['f1']
-            wandb.log({
-                f'ablation_{name}_f1': best_f1_score
-            })
+            best_model_name = _best_model_name_from_results(results)
+            best_f1_score = results[best_model_name]["test_metrics"].get("f1", 0.0)
+            if not args.no_wandb:
+                wandb.log({f"ablation_{name}_f1": best_f1_score})
             ablation_results[name] = results
         print('Ablation study results:', ablation_results)
         results = ablation_results['full']
@@ -760,12 +812,10 @@ def main():
             if args.model == 'GAT':
                 trainer.config['gat_heads'] = config['gat_heads']
             results, _ = trainer.train_all_models()
-            best_model_name = max(results, key=lambda k: results[k]['val_metrics'][-1]['f1'])
-            best_f1_score = results[best_model_name]['val_metrics'][-1]['f1']
-            wandb.log({
-                'config': config,
-                'f1': best_f1_score
-            })
+            best_model_name = _best_model_name_from_results(results)
+            best_f1_score = results[best_model_name]["test_metrics"].get("f1", 0.0)
+            if not args.no_wandb:
+                wandb.log({"config": str(config), "f1": best_f1_score})
             if best_f1_score > best_f1:
                 best_f1 = best_f1_score
                 best_config = config
@@ -780,7 +830,7 @@ def main():
 
     # Generate and save visualizations for the best model
     print("[INFO] Generating visualizations...")
-    best_model_name = max(results, key=lambda k: results[k]['val_metrics'][-1]['f1'])
+    best_model_name = _best_model_name_from_results(results)
     num_classes = int(torch.max(trainer.data.y).item() + 1) if hasattr(trainer.data, 'y') else 2
     best_model = get_model(
         best_model_name,
@@ -813,18 +863,56 @@ def main():
     print("[INFO] Visualizations complete.")
 
     # Log to wandb
-    print("[INFO] Logging results to wandb...")
-    wandb.log({
-        'tsne_visualization': wandb.Image('results/feature_visualization.png'),
-        'attention_map': wandb.Image('results/attention_map.png') if hasattr(best_model, 'get_attention_weights') else None,
-        'feature_importance': wandb.Image('results/feature_importance.png'),
-        'learning_curves': wandb.Image(f'results/{best_model_name}_learning_curves.png')
-    })
-    print("[INFO] wandb logging complete.")
-
-    # Close wandb
-    wandb.finish()
+    if not args.no_wandb:
+        print("[INFO] Logging results to wandb...")
+        wandb.log({
+            'tsne_visualization': wandb.Image('results/feature_visualization.png'),
+            'attention_map': wandb.Image('results/attention_map.png') if hasattr(best_model, 'get_attention_weights') else None,
+            'feature_importance': wandb.Image('results/feature_importance.png'),
+            'learning_curves': wandb.Image(f'results/{best_model_name}_learning_curves.png')
+        })
+        print("[INFO] wandb logging complete.")
+        wandb.finish()
+    if args.export_results:
+        export_payload: Dict[str, Any] = {
+            "args": vars(args),
+            "dataset": {},
+            "test_metrics": {},
+        }
+        d = trainer.data
+        for attr in ("dataset_name", "dataset_description", "k_neighbors"):
+            if hasattr(d, attr):
+                export_payload["dataset"][attr] = getattr(d, attr)
+        if hasattr(d, "num_nodes"):
+            export_payload["dataset"]["num_nodes"] = int(d.num_nodes)
+        if hasattr(d, "num_edges"):
+            export_payload["dataset"]["num_edges"] = int(d.num_edges)
+        for model_name, res in results.items():
+            tm = res.get("test_metrics", {})
+            row: Dict[str, Any] = {}
+            for k, v in tm.items():
+                if k == "confusion_matrix":
+                    row[k] = np.asarray(v).tolist()
+                elif isinstance(v, (float, int, str, bool, type(None))):
+                    row[k] = v
+                elif hasattr(v, "item"):
+                    row[k] = v.item() if v.size == 1 else v.tolist()
+            export_payload["test_metrics"][model_name] = row
+        os.makedirs(os.path.dirname(os.path.abspath(args.export_results)) or ".", exist_ok=True)
+        with open(args.export_results, "w", encoding="utf-8") as f:
+            json.dump(export_payload, f, indent=2, default=str)
+        print(f"[INFO] Wrote result summary to {args.export_results}")
     print("[INFO] Script finished successfully.")
+
+
+def _best_model_name_from_results(results: Dict[str, Any]) -> str:
+    """Pick a model to visualize; use test F1 (val_metrics may be empty in this trainer)."""
+    def f1_of(name: str) -> float:
+        tm = results[name].get("test_metrics", {})
+        v = tm.get("f1", 0.0)
+        return float(v) if v is not None else 0.0
+
+    return max(results.keys(), key=f1_of)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="GNN Cancer Training")
@@ -845,6 +933,23 @@ def parse_args():
     parser.add_argument('--grid_search', action='store_true', help='Enable grid search over hyperparameters')
     parser.add_argument('--ablation', action='store_true', help='Enable ablation study automation')
     parser.add_argument('--data_dir', type=str, default='./data', help='Directory containing data files')
+    parser.add_argument(
+        "--no-wandb",
+        action="store_true",
+        help="Do not use Weights & Biases (no API key required).",
+    )
+    parser.add_argument(
+        "--export-results",
+        dest="export_results",
+        type=str,
+        default="",
+        help="Write JSON with test metrics and dataset info to this path (e.g. results/reproducible_run.json).",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Less verbose per-epoch output.",
+    )
     return parser.parse_args()
 
 if __name__ == "__main__":

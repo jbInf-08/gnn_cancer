@@ -186,12 +186,14 @@ def generate_statistics_summary(improvements, our_results):
         'best_performing_model': None,
         'best_performing_method': None,
         'average_improvement': {},
+        # Do not hardcode cohort sizes: populate from measured pipeline outputs or GDC queries.
         'dataset_statistics': {
-            'total_nodes': 967189,
-            'total_edges': 2134841,
-            'positive_samples': 19,
-            'negative_samples': 967170,
-            'imbalance_ratio': 50903.68
+            'total_nodes': None,
+            'total_edges': None,
+            'positive_samples': None,
+            'negative_samples': None,
+            'imbalance_ratio': None,
+            'note': 'Run scripts/audit_claims.py and your data build to fill real values.',
         }
     }
     

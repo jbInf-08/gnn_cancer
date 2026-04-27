@@ -47,13 +47,21 @@ python scripts/download_uuid_to_barcode.py --project TCGA-BRCA
 
 ## Usage
 
-**Training** (requires `WANDB_API_KEY` or `config/api_keys.json` for Weights & Biases):
+**Training**
 
-```bash
-python train.py --cancer_type BRCA --model GCN --data_source TCGA
-```
+- **Public benchmark (no GDC download, no W&B key):** trains GCN, GraphSAGE, and GAT on the UCI Wisconsin breast-cancer set via scikit-learn, with a kNN graph:
+  ```bash
+  python train.py --cancer_type BRCA --model GCN --data_source BENCHMARK --no-wandb --quiet --export-results results/reproducible_baseline_uwbc.json
+  ```
+  Metrics are written to the JSON path you pass to `--export-results` (see `docs/UPDATED_PAPER.md`).
 
-`train.py` trains GCN, GraphSAGE, and GAT in one run; `--model` is used for WandB naming. For the BRCA+TCGA path, build or obtain `data/processed/BRCA_comprehensive_data.pt` first (see `scripts/`).
+- **TCGA / preprocessed graph** (optional; requires `WANDB_API_KEY` or `config/api_keys.json` unless you pass `--no-wandb`):
+  ```bash
+  python train.py --cancer_type BRCA --model GCN --data_source TCGA
+  ```
+  For the BRCA+TCGA path, build or obtain `data/processed/BRCA_comprehensive_data.pt` first (see `scripts/`).
+
+`train.py` trains GCN, GraphSAGE, and GAT in one run; `--model` is only used for WandB run naming.
 
 **End-to-end driver:**
 
@@ -81,6 +89,14 @@ model = get_model("GraphSAGE", in_channels=256, out_channels=2, hidden_channels=
 - `notebooks/results_summary.ipynb` — minimal template to summarize **your** result artifacts
 
 Regenerated images and checkpoints should stay under `results/` and are ignored from git; see `.gitignore`.
+
+## Verifying quantitative claims
+
+```bash
+python scripts/audit_claims.py
+```
+
+Writes `results/claims_audit.json` (GDC TCGA-BRCA case count from the public API, sklearn Wisconsin facts, scan for legacy `967189`-style literals, and `train.py` loss wiring). Use it before asserting cohort sizes in writing.
 
 ## Tests and CI
 

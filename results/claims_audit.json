@@ -1,0 +1,126 @@
+{
+  "generated_at_utc": "2026-04-26T20:07:27.328443+00:00",
+  "executive_summary": [
+    "TCGA-BRCA in GDC is on the order of ~1.1k cases (see gdc.tcga_brca_case_total), not ~967k unique patients.",
+    "Remaining 967k-style literals were found under legacy/ and docs/archive/ (see hardcoded_literals_scan).",
+    "For publication, tie every number to (1) a query or file hash, (2) whether it is patients vs nodes vs edges vs rows.",
+    "Match manuscript 'Loss' text to train.py (see train_py_training_objective)."
+  ],
+  "gdc": {
+    "ok": true,
+    "tcga_brca_case_total": 1098,
+    "source": "https://api.gdc.cancer.gov/cases (POST, size=0)"
+  },
+  "sklearn_wisconsin": {
+    "n_samples": 569,
+    "n_features": 30,
+    "class_0_malignant": 212,
+    "class_1_benign": 357,
+    "source": "sklearn.datasets.load_breast_cancer"
+  },
+  "hardcoded_literals_scan": {
+    "sample_hits": [
+      "legacy/final_real_training.py:341:print(\"\u26a0\ufe0f NOTE: Only 19 positive samples out of 967,189 total samples\")",
+      "legacy/memory_efficient_advanced_optimization.py:4:Optimized for large datasets with 967,189 nodes"
+    ],
+    "truncated": false
+  },
+  "train_py_training_objective": {
+    "train_model_uses_cross_entropy_forward_path": true,
+    "focal_loss_class_defined": true,
+    "train_model_loss_is_cross_entropy": true,
+    "train_model_loss_is_focal_instance": false,
+    "verdict": "Default train_model uses F.cross_entropy on train_mask; FocalLoss is defined but not used as the optimization loss in that loop."
+  },
+  "benchmark_export_files": {
+    "path": "results\\benchmark_results.json",
+    "present": true,
+    "payload": {
+      "args": {
+        "cancer_type": "BRCA",
+        "model": "GAT",
+        "pretrain": false,
+        "augment": false,
+        "data_source": "BENCHMARK",
+        "batch_size": 32,
+        "epochs": 100,
+        "lr": 0.001,
+        "weight_decay": 0.0005,
+        "patience": 10,
+        "hidden_channels": 64,
+        "num_layers": 3,
+        "dropout": 0.5,
+        "seed": 42,
+        "grid_search": false,
+        "ablation": false,
+        "data_dir": "./data",
+        "no_wandb": true,
+        "export_results": "results/benchmark_results.json",
+        "quiet": true
+      },
+      "dataset": {
+        "dataset_name": "sklearn_breast_cancer_wisconsin",
+        "dataset_description": "UCI ML Breast Cancer Wisconsin (Diagnostic) via sklearn.datasets.load_breast_cancer; kNN graph in standardized feature space.",
+        "k_neighbors": 10,
+        "num_nodes": 569,
+        "num_edges": 8554
+      },
+      "test_metrics": {
+        "GCN": {
+          "accuracy": 0.9302325581395349,
+          "f1": 0.9302325581395349,
+          "precision": 0.9302325581395349,
+          "recall": 0.9302325581395349,
+          "loss": 0.18575195968151093,
+          "auc_roc": 0.9820601851851852,
+          "confusion_matrix": [
+            [
+              29,
+              3
+            ],
+            [
+              3,
+              51
+            ]
+          ]
+        },
+        "GraphSAGE": {
+          "accuracy": 0.9069767441860465,
+          "f1": 0.9075086095709177,
+          "precision": 0.9090550352520257,
+          "recall": 0.9069767441860465,
+          "loss": 0.19625131785869598,
+          "auc_roc": 0.9826388888888888,
+          "confusion_matrix": [
+            [
+              29,
+              3
+            ],
+            [
+              5,
+              49
+            ]
+          ]
+        },
+        "GAT": {
+          "accuracy": 0.9418604651162791,
+          "f1": 0.9420360122381422,
+          "precision": 0.9424787586261918,
+          "recall": 0.9418604651162791,
+          "loss": 0.15486928820610046,
+          "auc_roc": 0.9855324074074074,
+          "confusion_matrix": [
+            [
+              30,
+              2
+            ],
+            [
+              3,
+              51
+            ]
+          ]
+        }
+      }
+    }
+  }
+}

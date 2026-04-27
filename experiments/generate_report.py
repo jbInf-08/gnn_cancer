@@ -89,8 +89,8 @@ def load_metrics():
         summary_df = pd.DataFrame({
             'Model': ['EnhancedGAT'],
             'Status': ['Training in Progress'],
-            'Dataset_Size': ['967,189 nodes'],
-            'Test_Size': ['145,079 nodes (expected)'],
+            'Dataset_Size': ['unknown — run data pipeline / audit_claims.py'],
+            'Test_Size': ['unknown'],
             'Accuracy': ['Pending'],
             'F1_Score': ['Pending'],
             'Precision': ['Pending'],

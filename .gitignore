@@ -140,6 +140,9 @@ yarn-error.log*
 
 # Sensitive data and large artifacts
 *.json
+!results/reproducible_baseline_uwbc.json
+!results/claims_audit.json
+!results/benchmark_results.json
 credentials/
 secrets/
 config/
