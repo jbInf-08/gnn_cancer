@@ -5,13 +5,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Static SOTA baselines from literature
-SOTA_BASELINES = {
-    'DeepMutPred': {'accuracy': 0.941, 'f1': 0.939, 'roc_auc': 0.95, 'pr_auc': 0.94},
-    'CancerBERT': {'accuracy': 0.925, 'f1': 0.928, 'roc_auc': 0.93, 'pr_auc': 0.92},
-    'MutPredict-X': {'accuracy': 0.937, 'f1': 0.942, 'roc_auc': 0.94, 'pr_auc': 0.93},
-    'HistogenNet': {'accuracy': 0.921, 'f1': 0.919, 'roc_auc': 0.92, 'pr_auc': 0.91},
-}
+# External baselines for comparison.
+#
+# Every entry MUST be traceable: a real published result on THIS task and
+# THIS data, with a citation, or a baseline reproduced in this repository.
+# Do not add numbers that cannot be sourced. Entries without a 'citation'
+# key are rejected below rather than silently reported.
+#
+# Shape:
+#   'Name': {'accuracy': ..., 'f1': ..., 'roc_auc': ..., 'pr_auc': ...,
+#            'citation': 'Author et al. (Year), Journal, doi:...'}
+EXTERNAL_BASELINES = {}
 
 # Find all result files
 result_files = glob.glob('data/processed/best_*.json')
@@ -33,7 +37,7 @@ for file in result_files:
     row = {
         'model': model.upper(),
         'ablation': ablation,
-        'accuracy': metrics['f1'].mean(),  # F1 as proxy for accuracy if not present
+        'accuracy': float('nan'),  # filled below only if the results file records accuracy
         'f1': metrics['f1'].mean(),
         'roc_auc': metrics['roc_auc'].mean(),
         'pr_auc': metrics['pr_auc'].mean(),
@@ -41,15 +45,20 @@ for file in result_files:
     if 'accuracy' in metrics:
         row['accuracy'] = metrics['accuracy'].mean()
     rows.append(row)
-# Add static SOTA baselines
-for name, vals in SOTA_BASELINES.items():
+# Add external baselines — only entries that carry a citation
+for name, vals in EXTERNAL_BASELINES.items():
+    if not vals.get('citation'):
+        raise ValueError(f"External baseline {name!r} has no citation; refusing to report it")
     row = {'model': name, 'ablation': 'SOTA'}
-    row.update(vals)
+    row.update({k: v for k, v in vals.items() if k != 'citation'})
     rows.append(row)
 df = pd.DataFrame(rows)
 df.to_csv('data/processed/summary_results.csv', index=False)
 # Plot summary barplots
 for metric in ['accuracy', 'f1', 'roc_auc', 'pr_auc']:
+    if df[metric].isna().all():
+        print(f'No recorded {metric} values; skipping its plot.')
+        continue
     plt.figure(figsize=(14, 6))
     sns.barplot(x='model', y=metric, hue='ablation', data=df, ci=None)
     plt.title(f'Model/Ablation Comparison: {metric.upper()}')
