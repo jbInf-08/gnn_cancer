@@ -93,6 +93,10 @@ def compare_with_sota(df):
     for _, row in our_best.sort_values('f1', ascending=False).iterrows():
         print(f"{row['model']:12} | F1: {row['f1']:.3f} | ROC-AUC: {row['roc_auc']:.3f} | PR-AUC: {row['pr_auc']:.3f}")
     
+    if sota_models.empty:
+        print("\nNo cited external baselines recorded; head-to-head comparison skipped.")
+        return our_best, sota_models
+
     print("\nSOTA BASELINES:")
     print("-" * 50)
     for _, row in sota_models.sort_values('f1', ascending=False).iterrows():

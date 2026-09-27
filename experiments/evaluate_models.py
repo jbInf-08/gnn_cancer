@@ -173,13 +173,15 @@ def compare_with_sota():
     # Load our results
     results_df = pd.read_csv('data/results/model_comparison.csv', index_col=0)
     
-    # SOTA methods results as reported in the paper
-    sota_results = {
-        'DeepMutPred': {'accuracy': 0.941, 'f1': 0.939},
-        'CancerBERT': {'accuracy': 0.925, 'f1': 0.928},
-        'MutPredict-X': {'accuracy': 0.937, 'f1': 0.942},
-        'HistogenNet': {'accuracy': 0.921, 'f1': 0.919}
-    }
+    # External baselines. Every entry must be a real, cited result on this
+    # exact task and data, or a baseline reproduced in this repository.
+    # None are currently recorded, so the comparison is skipped rather than
+    # populated with numbers that cannot be sourced.
+    sota_results = {}
+
+    if not sota_results:
+        print("No cited external baselines recorded; skipping SOTA comparison.")
+        return results_df
     
     # Add SOTA methods to results
     for method, metrics in sota_results.items():
