@@ -37,7 +37,7 @@ for file in result_files:
     row = {
         'model': model.upper(),
         'ablation': ablation,
-        'accuracy': metrics['f1'].mean(),  # F1 as proxy for accuracy if not present
+        'accuracy': float('nan'),  # filled below only if the results file records accuracy
         'f1': metrics['f1'].mean(),
         'roc_auc': metrics['roc_auc'].mean(),
         'pr_auc': metrics['pr_auc'].mean(),
@@ -56,6 +56,9 @@ df = pd.DataFrame(rows)
 df.to_csv('data/processed/summary_results.csv', index=False)
 # Plot summary barplots
 for metric in ['accuracy', 'f1', 'roc_auc', 'pr_auc']:
+    if df[metric].isna().all():
+        print(f'No recorded {metric} values; skipping its plot.')
+        continue
     plt.figure(figsize=(14, 6))
     sns.barplot(x='model', y=metric, hue='ablation', data=df, ci=None)
     plt.title(f'Model/Ablation Comparison: {metric.upper()}')
